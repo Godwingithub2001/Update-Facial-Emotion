@@ -55,7 +55,7 @@ namex==0.0.8
 nest_asyncio 
 
 nltk==3.8.1
-numpy==1.26.4
+numpy>=1.22.0
 opencv-contrib-python==4.10.0.84
 opencv-python==4.10.0.84
 opt-einsum==3.3.0
@@ -80,7 +80,6 @@ python-dateutil
 python-engineio==4.11.2
 python-socketio==5.12.1
 pytz==2024.1
-pywin32==305.1
 pyzmq 
 regex==2024.7.24
 requests==2.32.3
