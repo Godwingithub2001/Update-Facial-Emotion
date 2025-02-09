@@ -11,7 +11,7 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Load the trained emotion recognition model
-model = load_model('C:\DATASCIENCE\MyProjects\FER.CK_emotions\Project\emotion_recognition_model.h5')
+model = load_model('emotion_recognition_model.h5')
 
 # Load Xception for feature extraction
 base_model = tf.keras.applications.Xception(weights="imagenet", include_top=False, input_shape=(299, 299, 3))
