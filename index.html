@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Emotion Recognition</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h1 style="color: green;">Real-Time Emotion Recognition</h1>
+
+  <!-- Buttons to Start/Stop Streaming -->
+  <button id="startButton" onclick="startStreaming()">Start Streaming</button>
+  <button id="stopButton" onclick="stopStreaming()" style="display: none;">Stop Streaming</button>
+
+  <!-- Video Stream (Initially Hidden) -->
+  <div id="videoContainer" style="display: none;">
+    <video id="video" autoplay playsinline width="640" height="480" style="border: 1px solid black;"></video>
+  </div>
+  <h2>Detected Emotion: <span id="emotion">Waiting...</span></h2>
+
+  <!-- Upload Image for Emotion Prediction -->
+  <h2>Upload an Image for Emotion Detection</h2>
+  <input type="file" id="imageUpload" accept="image/*">
+  <button onclick="predictEmotion()">Predict Emotion</button>
+  <p><strong>Prediction:</strong> <span id="predictedEmotion">None</span></p>
+
+  <script>
+    const socket = io('http://127.0.0.1:5000'); // Flask backend URL
+    const video = document.getElementById('video');
+    const videoContainer = document.getElementById('videoContainer');
+    const emotionDisplay = document.getElementById('emotion');
+    const imageUpload = document.getElementById('imageUpload');
+    const predictedEmotionDisplay = document.getElementById('predictedEmotion');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    let streamInterval = null;
+    let stream = null;
+
+    // Start streaming
+    async function startStreaming() {
+      try {
+        // Access the webcam
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        // Show video container
+        videoContainer.style.display = 'block';
+        startButton.style.display = 'none';
+        stopButton.style.display = 'inline-block';
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        streamInterval = setInterval(() => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const frame = canvas.toDataURL('image/jpeg'); // Convert frame to Base64
+          socket.emit('video_frame', { frame: frame.split(',')[1] }); // Send frame to backend
+        }, 100); // Send frame every 100ms
+      } catch (error) {
+        console.error('Error accessing webcam:', error);
+        alert('Unable to access webcam. Please check your device and permissions.');
+      }
+    }
+
+    // Stop streaming
+    function stopStreaming() {
+      if (streamInterval) {
+        clearInterval(streamInterval);
+        streamInterval = null;
+      }
+      if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        stream = null;
+      }
+
+      // Hide video container
+      videoContainer.style.display = 'none';
+      startButton.style.display = 'inline-block';
+      stopButton.style.display = 'none';
+    }
+
+    // Receive emotion data from backend
+    socket.on('emotion', (data) => {
+      emotionDisplay.textContent = data.emotion;
+    });
+
+    // Predict emotion from uploaded image
+    function predictEmotion() {
+      const file = imageUpload.files[0];
+      if (!file) {
+        alert('Please upload an image first!');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        predictedEmotionDisplay.textContent = data.emotion || 'Error';
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>
