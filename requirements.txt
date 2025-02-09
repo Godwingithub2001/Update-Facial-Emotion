@@ -55,7 +55,7 @@ namex==0.0.8
 nest_asyncio 
 
 nltk==3.8.1
-numpy==1.23.0
+numpy
 opencv-contrib-python==4.10.0.84
 opencv-python==4.10.0.84
 opt-einsum==3.3.0
