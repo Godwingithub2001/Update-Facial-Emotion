@@ -1,3 +1,10 @@
+import os
+
+file_path = "C:/DATASCIENCE/MyProjects/FER.CK_emotions/Project/emotion_recognition_model.h5"
+if os.path.exists(file_path):
+    print("File exists")
+else:
+    print("File NOT found!")
 
 from flask import Flask, render_template, request, jsonify
 import cv2
